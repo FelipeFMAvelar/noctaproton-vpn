@@ -4,3 +4,4 @@ __pycache__/
 .noctalia-cache.json
 noctalia.d.luau
 .DS_Store
+publish.sh

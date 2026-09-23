@@ -1,0 +1,61 @@
+{
+  "title": "Proton VPN",
+  "settings": {
+    "refresh_interval": {
+      "label": "Status refresh interval (seconds)",
+      "description": "How often to poll Proton VPN and NetworkManager for status."
+    },
+    "traffic_monitoring": {
+      "label": "Live traffic monitoring",
+      "description": "Measure tunnel upload and download speeds."
+    },
+    "notify_on_connect": {
+      "label": "Connection notifications",
+      "description": "Show notifications when VPN connects or disconnects."
+    }
+  },
+  "widget": {
+    "tooltip_disconnected": "Proton VPN: Disconnected (Click to open)",
+    "tooltip_connected": "Proton VPN: Connected to {server} ({country})\nIP: {ip}\n↓ {rxRate}  ↑ {txRate}",
+    "tooltip_connecting": "Proton VPN: Connecting..."
+  },
+  "status": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connecting": "Connecting..."
+  },
+  "tabs": {
+    "connections": "Connections",
+    "protection": "Protection",
+    "account": "Account"
+  },
+  "actions": {
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "quick_connect": "Quick Connect",
+    "signin": "Sign In",
+    "signout": "Sign Out",
+    "copy_port": "Copy Port",
+    "copy_ip": "Copy IP"
+  },
+  "protection": {
+    "killswitch": "Kill Switch",
+    "killswitch_desc": "Block all internet traffic if the VPN connection drops unexpectedly.",
+    "netshield": "NetShield",
+    "netshield_desc": "DNS-level ad, malware, and tracker blocking.",
+    "netshield_off": "Off",
+    "netshield_malware": "Malware only",
+    "netshield_all": "Malware, Ads & Trackers",
+    "port_forwarding": "Port Forwarding",
+    "port_forwarding_desc": "Assign an inbound port for P2P and BitTorrent applications.",
+    "split_tunneling": "Split Tunneling",
+    "split_tunneling_desc": "Exclude selected applications from the VPN tunnel.",
+    "split_tunneling_warning": "Disabled while Kill Switch is active."
+  },
+  "account": {
+    "username": "Username",
+    "plan": "Plan / Tier",
+    "not_signed_in": "Not signed in to Proton VPN.",
+    "signin_hint": "Click Sign In to open a secure terminal authentication prompt."
+  }
+}

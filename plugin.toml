@@ -6,7 +6,7 @@ author       = "RiverSyx"
 license      = "GPL-3.0"
 icon         = "shield-lock"
 description  = "Proton VPN controller for Noctalia: Kill Switch, NetShield, Port Forwarding, Split Tunneling, and live traffic."
-tags         = ["bar", "panel", "service", "shortcut", "network", "privacy", "utility", "arch", "mangowc"]
+tags         = ["bar", "panel", "service", "shortcut", "network", "privacy", "utility"]
 dependencies = ["proton-vpn-cli", "nmcli", "python"]
 
 [[setting]]

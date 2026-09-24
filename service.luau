@@ -562,8 +562,6 @@ noctalia.state.watch(COMMAND_KEY, function(cmd)
 
     if type(noctalia.runInTerminal) == "function" then
       noctalia.runInTerminal(cmdStr)
-    else
-      noctalia.runAsync(`ghostty -e {cmdStr}`)
     end
 
   elseif op == "signout" then

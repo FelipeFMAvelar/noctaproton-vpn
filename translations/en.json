@@ -33,10 +33,10 @@
     "connect": "Connect",
     "disconnect": "Disconnect",
     "quick_connect": "Quick Connect",
+    "fastest": "Fastest",
     "signin": "Sign In",
     "signout": "Sign Out",
-    "copy_port": "Copy Port",
-    "copy_ip": "Copy IP"
+    "copy_port": "Copy Port"
   },
   "protection": {
     "killswitch": "Kill Switch",
@@ -50,12 +50,11 @@
     "port_forwarding_desc": "Assign an inbound port for P2P and BitTorrent applications.",
     "split_tunneling": "Split Tunneling",
     "split_tunneling_desc": "Exclude selected applications from the VPN tunnel.",
-    "split_tunneling_warning": "Disabled while Kill Switch is active."
+    "split_tunneling_warning": "Note: Split tunneling is ignored by Proton while Kill Switch is active."
   },
   "account": {
-    "username": "Username",
-    "plan": "Plan / Tier",
-    "not_signed_in": "Not signed in to Proton VPN.",
-    "signin_hint": "Click Sign In to open a secure terminal authentication prompt."
+    "plan": "Plan",
+    "not_signed_in": "Not Signed In",
+    "signin_hint": "Enter your Proton username or email below to sign in."
   }
 }

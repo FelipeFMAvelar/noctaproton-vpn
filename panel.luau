@@ -73,7 +73,7 @@ local function renderConnectionsTab()
   -- Quick connect feature row
   table.insert(rows, ui.row({ gap = 6, align = "center" }, {
     ui.button({
-      text = "Fastest",
+      text = noctalia.tr("actions.fastest"),
       glyph = "bolt",
       variant = "outline",
       controlSize = "sm",
@@ -186,7 +186,7 @@ local function renderConnectionsTab()
           }),
         }),
         ui.button({
-          text = isCurrentCountry and "Connected" or "Connect",
+          text = isCurrentCountry and noctalia.tr("status.connected") or noctalia.tr("actions.connect"),
           variant = isCurrentCountry and "primary" or "outline",
           glyph = isCurrentCountry and "check" or "player-play",
           controlSize = "sm",
@@ -240,7 +240,8 @@ local function renderProtectionTab()
         checked = ksOn,
         enabled = not snapshot.busy,
         onChange = function(checked)
-          sendCmd("set_killswitch", { value = checked and "standard" or "off" })
+          local val = (checked == "true" or checked == true) and "standard" or "off"
+          sendCmd("set_killswitch", { value = val })
         end,
       }),
     }),
@@ -264,7 +265,7 @@ local function renderProtectionTab()
     }),
     ui.row({ gap = 6, align = "center" }, {
       ui.button({
-        text = "Off",
+        text = noctalia.tr("protection.netshield_off"),
         variant = (nsVal == "off") and "primary" or "outline",
         controlSize = "sm",
         flexGrow = 1,
@@ -273,7 +274,7 @@ local function renderProtectionTab()
         end,
       }),
       ui.button({
-        text = "Malware",
+        text = noctalia.tr("protection.netshield_malware"),
         variant = (nsVal == "malware-only") and "primary" or "outline",
         controlSize = "sm",
         flexGrow = 1,
@@ -282,7 +283,7 @@ local function renderProtectionTab()
         end,
       }),
       ui.button({
-        text = "Ads & Malware",
+        text = noctalia.tr("protection.netshield_all"),
         variant = (nsVal == "malware-ads-trackers") and "primary" or "outline",
         controlSize = "sm",
         flexGrow = 1,
@@ -306,7 +307,8 @@ local function renderProtectionTab()
         checked = pfOn,
         enabled = not snapshot.busy,
         onChange = function(checked)
-          sendCmd("set_port_forwarding", { value = checked and "on" or "off" })
+          local val = (checked == "true" or checked == true) and "on" or "off"
+          sendCmd("set_port_forwarding", { value = val })
         end,
       }),
     }),
@@ -328,12 +330,12 @@ local function renderProtectionTab()
         flexGrow = 1,
       }),
       ui.button({
-        text = "Copy",
+        text = noctalia.tr("actions.copy_port"),
         glyph = "copy",
         variant = "outline",
         controlSize = "xs",
         onClick = function()
-          noctalia.copyToClipboard(tostring(snapshot.forwardedPort))
+          noctalia.copyToClipboard(tostring(snapshot.forwardedPort), "text/plain")
           noctalia.notify(noctalia.tr("title"), `Port {snapshot.forwardedPort} copied to clipboard`)
         end,
       }),
@@ -370,7 +372,7 @@ local function renderProtectionTab()
 
   if ksOn then
     table.insert(splitChildren, ui.label({
-      text = "Note: Split tunneling is ignored by Proton while Kill Switch is active.",
+      text = noctalia.tr("protection.split_tunneling_warning"),
       fontSize = 11,
       color = "on_surface_variant",
     }))
@@ -495,12 +497,12 @@ local function renderAccountTab()
       ui.glyph({ name = signedIn and "user-check" or "user-x", size = 28, color = signedIn and "primary" or "error" }),
       ui.column({ flexGrow = 1, gap = 2 }, {
         ui.label({
-          text = signedIn and (username ~= "" and username or "Proton User") or "Not Signed In",
+          text = signedIn and (username ~= "" and username or "Proton User") or noctalia.tr("account.not_signed_in"),
           fontWeight = "bold",
           fontSize = 15,
         }),
         ui.label({
-          text = signedIn and (plan ~= "" and `Plan: {plan}` or "Account active") or "Authentication required to connect",
+          text = signedIn and (plan ~= "" and `{noctalia.tr("account.plan")}: {plan}` or "Account active") or noctalia.tr("account.signin_hint"),
           fontSize = 12,
           color = "on_surface_variant",
         }),
@@ -526,7 +528,7 @@ local function renderAccountTab()
         end,
       }),
       ui.button({
-        text = "Sign In via Terminal",
+        text = noctalia.tr("actions.signin"),
         glyph = "login",
         variant = "primary",
         onClick = function()
@@ -542,7 +544,7 @@ local function renderAccountTab()
   else
     table.insert(rows, ui.row({ gap = 8, align = "center" }, {
       ui.button({
-        text = "Sign Out",
+        text = noctalia.tr("actions.signout"),
         glyph = "logout",
         variant = "outline",
         flexGrow = 1,
@@ -597,19 +599,19 @@ render = function()
       }),
       ui.column({ flexGrow = 1, gap = 1 }, {
         ui.label({
-          text = connected and (snapshot.server ~= "" and snapshot.server or "Connected") or (connecting and "Connecting..." or (snapshot.signedIn and "Disconnected" or "Not Signed In")),
+          text = connected and (snapshot.server ~= "" and snapshot.server or noctalia.tr("status.connected")) or (connecting and noctalia.tr("status.connecting") or (snapshot.signedIn and noctalia.tr("status.disconnected") or noctalia.tr("account.not_signed_in"))),
           fontWeight = "bold",
           fontSize = 15,
         }),
         ui.label({
-          text = connected and (`{snapshot.city ~= "" and (snapshot.city .. ", ") or ""}{snapshot.country}  ·  {snapshot.ip}`) or (snapshot.signedIn and "No active tunnel" or "Click Sign In below to authenticate"),
+          text = connected and (`{snapshot.city ~= "" and (snapshot.city .. ", ") or ""}{snapshot.country}  ·  {snapshot.ip}`) or (snapshot.signedIn and "No active tunnel" or noctalia.tr("account.signin_hint")),
           fontSize = 11,
           color = "on_surface_variant",
           maxLines = 1,
         }),
       }),
       ui.button({
-        text = connected and "Disconnect" or (snapshot.signedIn and "Connect" or "Sign In"),
+        text = connected and noctalia.tr("actions.disconnect") or (snapshot.signedIn and noctalia.tr("actions.quick_connect") or noctalia.tr("actions.signin")),
         variant = connected and "outline" or "primary",
         glyph = connected and "player-stop" or (snapshot.signedIn and "player-play" or "login"),
         controlSize = "sm",

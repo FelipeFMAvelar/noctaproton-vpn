@@ -76,11 +76,17 @@ local function render()
     local sName = snapshot.server ~= "" and snapshot.server or "VPN"
     local cName = snapshot.country ~= "" and snapshot.country or ""
     local ipStr = snapshot.ip ~= "" and snapshot.ip or "Protected"
-    barWidget.setTooltip(`Proton VPN: Connected to {sName} ({cName})\nIP: {ipStr}\n↓ {rx}   ↑ {tx}\nClick to configure · Right-click to disconnect`)
+    barWidget.setTooltip(noctalia.tr("widget.tooltip_connected", {
+      server = sName,
+      country = cName,
+      ip = ipStr,
+      rxRate = rx,
+      txRate = tx,
+    }))
   elseif connecting then
-    barWidget.setTooltip("Proton VPN: Connecting...\nClick to view status")
+    barWidget.setTooltip(noctalia.tr("widget.tooltip_connecting"))
   else
-    barWidget.setTooltip("Proton VPN: Disconnected\nClick to configure · Right-click to quick connect")
+    barWidget.setTooltip(noctalia.tr("widget.tooltip_disconnected"))
   end
 end
 

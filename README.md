@@ -35,7 +35,7 @@ Built for **Noctalia Shell**, extensively tested on **MangoWM** on **Arch Linux 
 - 🛡️ **NetShield Ad & Malware Blocker**: 3-level DNS filtering (`Off`, `Malware only`, `Malware, Ads & Trackers`).
 - ⚡ **Port Forwarding**: Automatic continuous NAT-PMP port mapping renewal every 45s with one-click port copying to clipboard for torrent clients and P2P software.
 - 🔀 **Split Tunneling**: Seamless application picker scanning installed `.desktop` applications to route specific apps outside the VPN tunnel.
-- 🌍 **Country & Server Hopping**: Quick connect to **Fastest**, **Random**, **P2P**, **Tor**, or **Secure Core**, with a full searchable country and server list.
+- 🌍 **Country & Server Hopping**: Quick connect to **Fastest**, **Random**, **P2P**, **Tor**, or **Secure Core**, with a full searchable hierarchy auto-fetched live from Proton's own server cache: every country → every city → every server, with load and feature tags.
 - 📈 **Real-Time Bandwidth Meter**: Live download & upload speed counters (KB/s, MB/s) and session transfer totals.
 - 🔐 **Secure Interactive Authentication**: Launches an interactive terminal prompt for username, password, and 2FA authentication, keeping credentials completely isolated from scripts.
 - 🚀 **Desktop Bar & Quick Toggle**: Left-click the bar shield to open the panel, or right-click anytime to quick-connect / disconnect.

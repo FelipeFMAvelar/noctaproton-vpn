@@ -56,25 +56,17 @@ local snapshot = {
     candidates = {},
   },
   countries = {},
+  cities = {},
+  citiesFor = "",
+  citiesLoading = false,
+  servers = {},
+  serversFor = "",
+  serversForCity = "",
+  serversLoading = false,
+  stats = { countries = 0, cities = 0, servers = 0 },
   lastError = "",
   statusText = "Disconnected",
   updatedAt = 0,
-}
-
--- Default country list fallback
-local DEFAULT_COUNTRIES = {
-  { code = "US", name = "United States", count = 120, load = 42 },
-  { code = "NL", name = "Netherlands", count = 85, load = 38 },
-  { code = "JP", name = "Japan", count = 45, load = 51 },
-  { code = "DE", name = "Germany", count = 70, load = 35 },
-  { code = "GB", name = "United Kingdom", count = 65, load = 44 },
-  { code = "CH", name = "Switzerland", count = 50, load = 28 },
-  { code = "CA", name = "Canada", count = 48, load = 39 },
-  { code = "FR", name = "France", count = 40, load = 41 },
-  { code = "SE", name = "Sweden", count = 30, load = 32 },
-  { code = "AU", name = "Australia", count = 35, load = 49 },
-  { code = "SG", name = "Singapore", count = 28, load = 46 },
-  { code = "IS", name = "Iceland", count = 15, load = 25 },
 }
 
 local lastRxBytes = -1
@@ -168,47 +160,111 @@ local function loadCandidateApps()
 end
 
 -- ── Servers and Countries Cache ───────────────────────────────────────────
+-- All lists are fetched live from Proton's own cache via servers.py, which
+-- reads ~/.cache/Proton/VPN/serverlist.json and resolves country names
+-- through Proton's country_codes module. Nothing is hardcoded here.
 
-local function loadServersAndCities()
+local function loadStats()
   local script = `{PLUGIN_DIR}/servers.py`
-  noctalia.runAsync(`python3 '{script}' --cities`, function(result)
+  noctalia.runAsync(`python3 '{script}' --stats`, function(result)
     if result.exitCode == 0 and result.stdout and result.stdout ~= "" then
-      local cities = parseJsonSafe(result.stdout)
-      if type(cities) == "table" and #cities > 0 then
-        -- Aggregate by country
-        local countriesMap = {}
-        for _, item in ipairs(cities) do
-          local cc = tostring(item.code or ""):upper()
-          if cc ~= "" then
-            if not countriesMap[cc] then
-              countriesMap[cc] = {
-                code = cc,
-                name = item.country or cc,
-                count = 0,
-                load = item.load or 50,
-                cities = {},
-              }
-            end
-            countriesMap[cc].count += 1
-            table.insert(countriesMap[cc].cities, item.city)
-          end
-        end
-        local list = {}
-        for _, c in pairs(countriesMap) do
-          table.insert(list, c)
-        end
-        table.sort(list, function(a, b) return a.count > b.count end)
+      local s = parseJsonSafe(result.stdout)
+      if type(s) == "table" then
+        snapshot.stats = {
+          countries = tonumber(s.countries) or 0,
+          cities = tonumber(s.cities) or 0,
+          servers = tonumber(s.servers) or 0,
+        }
+        publishState()
+      end
+    end
+  end, 10000)
+end
+
+local function loadCountries()
+  local script = `{PLUGIN_DIR}/servers.py`
+  noctalia.runAsync(`python3 '{script}' --countries`, function(result)
+    if result.exitCode == 0 and result.stdout and result.stdout ~= "" then
+      local list = parseJsonSafe(result.stdout)
+      if type(list) == "table" and #list > 0 then
         snapshot.countries = list
+        publishState()
+        loadStats()
+        return
+      end
+    end
+    -- Cache missing or Proton hasn't written one yet: trigger Proton's own
+    -- refresh (which rewrites serverlist.json) and retry once, instead of
+    -- falling back to a hardcoded list.
+    if #snapshot.countries == 0 then
+      noctalia.runAsync("protonvpn countries list", function(_)
+        noctalia.runAsync(`python3 '{script}' --countries`, function(retry)
+          if retry.exitCode == 0 and retry.stdout and retry.stdout ~= "" then
+            local list = parseJsonSafe(retry.stdout)
+            if type(list) == "table" and #list > 0 then
+              snapshot.countries = list
+            end
+          end
+          publishState()
+          loadStats()
+        end, 10000)
+      end, 60000)
+    end
+  end, 10000)
+end
+
+local function loadCities(countryCode)
+  local cc = tostring(countryCode or ""):upper()
+  if cc == "" then return end
+  snapshot.citiesFor = cc
+  snapshot.citiesLoading = true
+  snapshot.servers = {}
+  snapshot.serversFor = ""
+  snapshot.serversForCity = ""
+  publishState()
+  local script = `{PLUGIN_DIR}/servers.py`
+  noctalia.runAsync(`python3 '{script}' --cities {cc}`, function(result)
+    -- Ignore stale responses if the user already moved to another country.
+    if snapshot.citiesFor ~= cc then return end
+    snapshot.citiesLoading = false
+    if result.exitCode == 0 and result.stdout and result.stdout ~= "" then
+      local list = parseJsonSafe(result.stdout)
+      if type(list) == "table" then
+        snapshot.cities = list
         publishState()
         return
       end
     end
-    -- Fallback to default country list
-    if #snapshot.countries == 0 then
-      snapshot.countries = DEFAULT_COUNTRIES
-      publishState()
+    snapshot.cities = {}
+    publishState()
+  end, 15000)
+end
+
+local function loadServers(countryCode, cityName)
+  local cc = tostring(countryCode or ""):upper()
+  local city = tostring(cityName or "")
+  if cc == "" or city == "" then return end
+  snapshot.serversFor = cc
+  snapshot.serversForCity = city
+  snapshot.serversLoading = true
+  publishState()
+  local script = `{PLUGIN_DIR}/servers.py`
+  -- Quote city for the shell: city names contain spaces (e.g. New York).
+  local safeCity = city:gsub("'", "'\\''")
+  noctalia.runAsync(`python3 '{script}' --servers {cc} '{safeCity}'`, function(result)
+    if snapshot.serversFor ~= cc or snapshot.serversForCity ~= city then return end
+    snapshot.serversLoading = false
+    if result.exitCode == 0 and result.stdout and result.stdout ~= "" then
+      local list = parseJsonSafe(result.stdout)
+      if type(list) == "table" then
+        snapshot.servers = list
+        publishState()
+        return
+      end
     end
-  end, 10000)
+    snapshot.servers = {}
+    publishState()
+  end, 15000)
 end
 
 -- ── NAT-PMP Port Forwarding Renewal ───────────────────────────────────────
@@ -445,6 +501,7 @@ noctalia.state.watch(COMMAND_KEY, function(cmd)
 
     local args = ""
     local target = cmd.target
+    local kind = cmd.kind
     if not target or target == "" or target == "fastest" then
       args = ""
     elseif target == "random" then
@@ -455,10 +512,19 @@ noctalia.state.watch(COMMAND_KEY, function(cmd)
       args = "--tor"
     elseif target == "securecore" or target == "sc" then
       args = "--securecore"
-    elseif #target == 2 and target:match("^%a%a$") then
-      args = `--country {target:upper()}`
-    else
+    elseif kind == "city" then
+      args = `--city '` .. tostring(target):gsub("'", "'\\''") .. `'`
+    elseif kind == "country" and #tostring(target) == 2 then
+      args = `--country {tostring(target):upper()}`
+    elseif kind == "server" or tostring(target):find("#") then
       args = `'` .. tostring(target):gsub("'", "'\\''") .. `'`
+    elseif #tostring(target) == 2 and tostring(target):match("^%a%a$") then
+      args = `--country {tostring(target):upper()}`
+    else
+      -- Bare city name (e.g. from an older panel): route via --city so
+      -- multi-word names like "New York" resolve instead of failing as a
+      -- server ID.
+      args = `--city '` .. tostring(target):gsub("'", "'\\''") .. `'`
     end
 
     noctalia.runAsync(`protonvpn connect {args}`, function(result)
@@ -577,7 +643,30 @@ noctalia.state.watch(COMMAND_KEY, function(cmd)
     checkNmcliLink()
     pollProtonStatus()
     loadSplitTunneling()
-    loadServersAndCities()
+    loadCountries()
+    -- Re-fetch the open drill-down level so cities/servers never go stale.
+    if snapshot.serversFor ~= "" and snapshot.serversForCity ~= "" then
+      loadServers(snapshot.serversFor, snapshot.serversForCity)
+    elseif snapshot.citiesFor ~= "" then
+      loadCities(snapshot.citiesFor)
+    end
+  elseif op == "get_cities" then
+    if type(cmd.country) == "string" and cmd.country ~= "" then
+      loadCities(cmd.country)
+    end
+  elseif op == "get_servers" then
+    if type(cmd.country) == "string" and type(cmd.city) == "string" then
+      loadServers(cmd.country, cmd.city)
+    end
+  elseif op == "clear_selection" then
+    snapshot.cities = {}
+    snapshot.citiesFor = ""
+    snapshot.citiesLoading = false
+    snapshot.servers = {}
+    snapshot.serversFor = ""
+    snapshot.serversForCity = ""
+    snapshot.serversLoading = false
+    publishState()
   end
 end)
 
@@ -610,7 +699,7 @@ function update()
 end
 
 -- Initialize
-loadServersAndCities()
+loadCountries()
 loadSplitTunneling()
 loadCandidateApps()
 checkNmcliLink()

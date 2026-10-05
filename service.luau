@@ -78,6 +78,21 @@ local pollCounter = 0
 local portPollCounter = 0
 local isPolling = false
 
+local function normalizeServerName(raw)
+  local s = noctalia.string.trim(tostring(raw or ""))
+  if s == "" then return "", "", "" end
+  -- Long CLI form: "BR#20 in São Paulo, Brazil" -> "BR#20", "São Paulo", "Brazil"
+  local short, city, country = s:match("^(%S+) in (.+), ([^,]+)$")
+  if short then
+    return short, noctalia.string.trim(city), noctalia.string.trim(country)
+  end
+  local id = s:match("([A-Z]+#%d+)")
+  if id then return id, "", "" end
+  local first = s:match("^(%S+)")
+  if first then return first, "", "" end
+  return s, "", ""
+end
+
 local function publishState()
   snapshot.updatedAt = os.time()
   noctalia.state.set(STATE_KEY, snapshot)
@@ -351,7 +366,10 @@ local function checkNmcliLink()
       snapshot.connected = found
       if found then
         snapshot.connecting = false
-        if serverName ~= "" then snapshot.server = serverName end
+        if serverName ~= "" then
+          local short = normalizeServerName(serverName)
+          if short ~= "" then snapshot.server = short end
+        end
         snapshot.device = (dev ~= "" and dev or "proton0")
         snapshot.statusText = "Connected"
         if not wasConnected then
@@ -437,7 +455,10 @@ local function pollProtonStatus()
             if k == "status" then
               snapshot.statusText = v
             elseif k == "server" and v ~= "" then
-              snapshot.server = v
+              local short, city, country = normalizeServerName(v)
+              if short ~= "" then snapshot.server = short end
+              if city ~= "" then snapshot.city = city end
+              if country ~= "" then snapshot.country = country end
             elseif k == "country" and v ~= "" then
               snapshot.country = v
             elseif k == "city" and v ~= "" then

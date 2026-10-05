@@ -91,6 +91,7 @@ noctalia msg plugins enable riversyx/noctaproton-vpn
 | `refresh_interval` | `int` | `5` | How often (in seconds) to poll the Proton VPN CLI and NetworkManager for status. |
 | `traffic_monitoring` | `bool` | `true` | Enables continuous sampling of interface throughput from `/sys/class/net/proton0/statistics/`. |
 | `notify_on_connect` | `bool` | `true` | Show desktop notifications when the VPN tunnel connects or disconnects. |
+| `icon_only` | `bool` | `false` | Show only the shield icon in the bar, without the server name. |
 
 ## Notes
 

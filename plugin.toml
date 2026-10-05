@@ -32,6 +32,13 @@ label_key       = "settings.notify_on_connect.label"
 description_key = "settings.notify_on_connect.description"
 default         = true
 
+[[setting]]
+key             = "icon_only"
+type            = "bool"
+label_key       = "settings.icon_only.label"
+description_key = "settings.icon_only.description"
+default         = false
+
 [[service]]
 id    = "service"
 entry = "service.luau"

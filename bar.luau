@@ -27,9 +27,20 @@ local function formatSpeed(bps)
   end
 end
 
+local function isIconOnly()
+  local ok, val = pcall(function()
+    return noctalia.getConfig("icon_only")
+  end)
+  if ok then
+    return val == true
+  end
+  return false
+end
+
 local function render()
   local connected = (snapshot.connected == true)
   local connecting = (snapshot.connecting == true)
+  local iconOnly = isIconOnly()
 
   local glyphName = "shield-lock"
   local glyphColor = "on_surface_variant"
@@ -50,15 +61,15 @@ local function render()
     }),
   }
 
-  if connected then
-    local labelText = snapshot.country ~= "" and snapshot.country:upper() or (snapshot.server ~= "" and snapshot.server or "ON")
+  if connected and not iconOnly then
+    local labelText = snapshot.server ~= "" and snapshot.server or "ON"
     table.insert(children, ui.label({
       text = labelText,
       fontSize = 11,
       fontWeight = "bold",
       color = "primary",
     }))
-  elseif connecting then
+  elseif connecting and not iconOnly then
     table.insert(children, ui.label({
       text = "...",
       fontSize = 11,

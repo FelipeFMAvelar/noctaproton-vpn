@@ -12,6 +12,10 @@
     "notify_on_connect": {
       "label": "Connection notifications",
       "description": "Show notifications when VPN connects or disconnects."
+    },
+    "icon_only": {
+      "label": "Icon only in bar",
+      "description": "Show only the shield icon in the bar, without the server name."
     }
   },
   "widget": {

@@ -86,7 +86,7 @@ local function normalizeServerName(raw)
   if short then
     return short, noctalia.string.trim(city), noctalia.string.trim(country)
   end
-  local id = s:match("([A-Z]+#%d+)")
+  local id = s:match("([A-Z][A-Z%-]*#%d+)")
   if id then return id, "", "" end
   local first = s:match("^(%S+)")
   if first then return first, "", "" end
